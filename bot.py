@@ -1,65 +1,79 @@
+import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-import asyncio
-from aiogram import Bot, Dispatcher
-from datetime import datetime
+from aiogram.filters import Command
+from aiogram.utils.markdown import hbold
+from datetime import datetime, timezone, timedelta
 
-# Токен бота (замени на свой)
-API_TOKEN = "7674009820:AAFUnpILU1xzJKtHn5-7wS3jWoG1Zcl6YDk"
+API_TOKEN = "YOUR_BOT_TOKEN"
 
-# Включаем логирование
 logging.basicConfig(level=logging.INFO)
-
-# Создаем объекты бота и диспетчера
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-# Храним состояние таблеток в памяти (для простоты, можно заменить на базу данных)
-pills_taken = {}
+# Клавиатуры
+keyboard = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton("первую таблетку")],
+    [KeyboardButton("вторую таблетку (вместе с остальными)")],
+    [KeyboardButton("пока не пила (назад в меню)")]
+], resize_keyboard=True)
 
-# Клавиатура с вариантами ответов
-keyboard = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="первую таблетку")],
-        [KeyboardButton(text="вторую таблетку (вместе с остальными)")],
-        [KeyboardButton(text="пока не пила (назад в меню)")]
-    ],
-    resize_keyboard=True
-)
+# Отмеченные таблетки
+user_pills = {}
+
+def get_user_data(user_id):
+    if user_id not in user_pills:
+        user_pills[user_id] = {"first": False, "second": False}
+    return user_pills[user_id]
 
 @dp.message(Command("start"))
-async def send_welcome(message: types.Message):
-    user_id = message.from_user.id
-    pills_taken[user_id] = {"first": False, "second": False}
-    await message.answer("Привет! Ты сегодня выпила Велаксин?", reply_markup=keyboard)
+async def start(message: types.Message):
+    user_data = get_user_data(message.from_user.id)
+    await message.answer("Ты выпила Велаксин?", reply_markup=keyboard)
 
-@dp.message(lambda message: message.text in ["первую таблетку", "вторую таблетку (вместе с остальными)"])
-async def take_pill(message: types.Message):
+@dp.message()
+async def handle_buttons(message: types.Message):
     user_id = message.from_user.id
-    if user_id not in pills_taken:
-        pills_taken[user_id] = {"first": False, "second": False}
-    
-    if message.text == "первую таблетку":
-        pills_taken[user_id]["first"] = True
-    elif message.text == "вторую таблетку (вместе с остальными)":
-        pills_taken[user_id]["second"] = True
-    
-    # Формируем сообщение с отметками
-    date_today = datetime.now().strftime("%d.%m.%Y")
-    first_status = "✅" if pills_taken[user_id]["first"] else "❌"
-    second_status = "✅" if pills_taken[user_id]["second"] else "❌"
-    response = f"*{date_today}*\nПервая таблетка за сегодня: {first_status}\nВторая таблетка за сегодня (и остальные вместе с ней!): {second_status}\nНе забудь отметиться, когда выпьешь следующую таблетку! ❤️"
-    
-    if pills_taken[user_id]["first"] and pills_taken[user_id]["second"]:
-        response += "\nТы восхитительна! Come back tomorrow, love"
-    
-    await message.answer(response, parse_mode="Markdown")
+    user_data = get_user_data(user_id)
+    text = message.text.lower()
+
+    if "первую таблетку" in text or "уже выпила" in text:
+        user_data["first"] = True
+    elif "вторую таблетку" in text or "вместе с остальными" in text:
+        user_data["second"] = True
+
+    await message.answer(f"Отмечено: первая - {'✅' if user_data['first'] else '❌'}, вторая - {'✅' if user_data['second'] else '❌'}")
+
+async def send_reminders():
+    while True:
+        now = datetime.now(timezone.utc)
+        next_7am = now.replace(hour=7, minute=0, second=0, microsecond=0)
+        next_12pm = now.replace(hour=12, minute=0, second=0, microsecond=0)
+
+        if now >= next_7am:
+            next_7am += timedelta(days=1)
+        if now >= next_12pm:
+            next_12pm += timedelta(days=1)
+
+        wait_time = min((next_7am - now).total_seconds(), (next_12pm - now).total_seconds())
+        await asyncio.sleep(wait_time)
+
+        for user_id, data in user_pills.items():
+            if not data["first"] and now.hour == 7:
+                await bot.send_message(user_id, "Выпила первую таблетку?", reply_markup=ReplyKeyboardMarkup(
+                    keyboard=[[KeyboardButton("уже выпила, не отметила")], [KeyboardButton("нет, сейчас выпью")]],
+                    resize_keyboard=True
+                ))
+            if not data["second"] and now.hour == 12:
+                await bot.send_message(user_id, "Выпила вторую таблетку?", reply_markup=ReplyKeyboardMarkup(
+                    keyboard=[[KeyboardButton("уже выпила, не отметила")], [KeyboardButton("нет, сейчас выпью")]],
+                    resize_keyboard=True
+                ))
 
 async def main():
-    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+    asyncio.create_task(send_reminders())
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
-
