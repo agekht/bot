@@ -28,13 +28,13 @@ keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-@dp.message_handler(commands=['start'])
+@dp.message(commands=['start'])
 async def send_welcome(message: types.Message):
     user_id = message.from_user.id
     pills_taken[user_id] = {"first": False, "second": False}
     await message.answer("Привет! Ты сегодня выпила Велаксин?", reply_markup=keyboard)
 
-@dp.message_handler(lambda message: message.text in ["первую таблетку", "вторую таблетку (вместе с остальными)"])
+@dp.message(lambda message: message.text in ["первую таблетку", "вторую таблетку (вместе с остальными)"])
 async def take_pill(message: types.Message):
     user_id = message.from_user.id
     if user_id not in pills_taken:
