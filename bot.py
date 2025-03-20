@@ -6,18 +6,21 @@ from aiogram.filters import Command
 from aiogram.utils.markdown import hbold
 from datetime import datetime, timezone, timedelta
 
-API_TOKEN = "7674009820:AAFUnpILU1xzJKtHn5-7wS3jWoG1Zcl6YDk"
+API_TOKEN = "YOUR_BOT_TOKEN"
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
 # Клавиатуры
-keyboard = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton("первую таблетку")],
-    [KeyboardButton("вторую таблетку (вместе с остальными)")],
-    [KeyboardButton("пока не пила (назад в меню)")]
-], resize_keyboard=True)
+keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="первую таблетку")],
+        [KeyboardButton(text="вторую таблетку (вместе с остальными)")],
+        [KeyboardButton(text="пока не пила (назад в меню)")]
+    ],
+    resize_keyboard=True
+)
 
 # Отмеченные таблетки
 user_pills = {}
@@ -59,15 +62,16 @@ async def send_reminders():
         wait_time = min((next_7am - now).total_seconds(), (next_12pm - now).total_seconds())
         await asyncio.sleep(wait_time)
 
+        now = datetime.now(timezone.utc)
         for user_id, data in user_pills.items():
-            if not data["first"] and now.hour == 7:
+            if now.hour == 7 and not data["first"]:
                 await bot.send_message(user_id, "Выпила первую таблетку?", reply_markup=ReplyKeyboardMarkup(
-                    keyboard=[[KeyboardButton("уже выпила, не отметила")], [KeyboardButton("нет, сейчас выпью")]],
+                    keyboard=[[KeyboardButton(text="уже выпила, не отметила")], [KeyboardButton(text="нет, сейчас выпью")]],
                     resize_keyboard=True
                 ))
-            if not data["second"] and now.hour == 12:
+            if now.hour == 12 and not data["second"]:
                 await bot.send_message(user_id, "Выпила вторую таблетку?", reply_markup=ReplyKeyboardMarkup(
-                    keyboard=[[KeyboardButton("уже выпила, не отметила")], [KeyboardButton("нет, сейчас выпью")]],
+                    keyboard=[[KeyboardButton(text="уже выпила, не отметила")], [KeyboardButton(text="нет, сейчас выпью")]],
                     resize_keyboard=True
                 ))
 
