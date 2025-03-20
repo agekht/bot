@@ -6,7 +6,7 @@ from aiogram.filters import Command
 from aiogram.utils.markdown import hbold
 from datetime import datetime, timezone, timedelta
 
-API_TOKEN = 7674009820:AAFUnpILU1xzJKtHn5-7wS3jWoG1Zcl6YDk
+API_TOKEN = "7674009820:AAFUnpILU1xzJKtHn5-7wS3jWoG1Zcl6YDk"
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
