@@ -28,7 +28,7 @@ keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-@dp.message(commands=['start'])
+@dp.message(Command("start"))
 async def send_welcome(message: types.Message):
     user_id = message.from_user.id
     pills_taken[user_id] = {"first": False, "second": False}
