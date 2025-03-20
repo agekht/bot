@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 
 # Создаем объекты бота и диспетчера
 bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher()
 
 # Храним состояние таблеток в памяти (для простоты, можно заменить на базу данных)
 pills_taken = {}
@@ -53,7 +53,7 @@ async def take_pill(message: types.Message):
     await message.answer(response, parse_mode="Markdown")
 
 async def main():
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 if __name__ == "__main__":
     asyncio.run(main())
