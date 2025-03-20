@@ -19,7 +19,7 @@ dp = Dispatcher()
 pills_taken = {}
 
 # Клавиатура с вариантами ответов
-keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+keyboard = ReplyKeyboardMarkup(keyboard=[], resize_keyboard=True)
 keyboard.add(KeyboardButton("первую таблетку"))
 keyboard.add(KeyboardButton("вторую таблетку (вместе с остальными)"))
 keyboard.add(KeyboardButton("пока не пила (назад в меню)"))
