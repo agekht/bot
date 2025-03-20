@@ -52,7 +52,7 @@ async def send_reminders():
     while True:
         now = datetime.now(timezone.utc)
         next_7am = now.replace(hour=7, minute=0, second=0, microsecond=0)
-        next_12pm = now.replace(hour=12, minute=0, second=0, microsecond=0)
+        next_12pm = now.replace(hour=13, minute=3, second=0, microsecond=0)
 
         if now >= next_7am:
             next_7am += timedelta(days=1)
