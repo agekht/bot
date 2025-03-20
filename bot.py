@@ -19,10 +19,14 @@ dp = Dispatcher()
 pills_taken = {}
 
 # Клавиатура с вариантами ответов
-keyboard = ReplyKeyboardMarkup(keyboard=[], resize_keyboard=True)
-keyboard.add(KeyboardButton("первую таблетку"))
-keyboard.add(KeyboardButton("вторую таблетку (вместе с остальными)"))
-keyboard.add(KeyboardButton("пока не пила (назад в меню)"))
+keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="первую таблетку")],
+        [KeyboardButton(text="вторую таблетку (вместе с остальными)")],
+        [KeyboardButton(text="пока не пила (назад в меню)")]
+    ],
+    resize_keyboard=True
+)
 
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
