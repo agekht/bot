@@ -57,11 +57,9 @@ async def send_reminders():
     while True:
         now = datetime.now(timezone.utc)
 
-        # Укажи тестовое время, например, через 3 минуты
-        next_7am = now.replace(hour=5, minute=59, second=0, microsecond=0)
-        next_12pm = now.replace(hour=6, minute=0, second=0, microsecond=0)
+        next_7am = now.replace(hour=6, minute=6, second=0, microsecond=0)  # Укажи нужное тестовое время
+        next_12pm = now.replace(hour=6, minute=8, second=0, microsecond=0)  # Укажи нужное тестовое время
 
-        # Увеличиваем на 1 день, если время уже прошло
         if now >= next_7am:
             next_7am += timedelta(days=1)
         if now >= next_12pm:
@@ -71,24 +69,24 @@ async def send_reminders():
             now = datetime.now(timezone.utc)
 
             if now >= next_7am:
+                logging.info("Отправляю утреннее напоминание...")
                 for user_id, data in user_pills.items():
                     if not data["first"]:
-                        logging.info(f"Отправка утреннего уведомления пользователю {user_id}")
                         await bot.send_message(user_id, "Выпила первую таблетку?", reply_markup=ReplyKeyboardMarkup(
                             keyboard=[[KeyboardButton(text="уже выпила, не отметила")], [KeyboardButton(text="нет, сейчас выпью")]],
                             resize_keyboard=True
                         ))
-                next_7am += timedelta(days=1)  # Переносим следующее уведомление на завтра
+                next_7am += timedelta(days=1)
 
             if now >= next_12pm:
+                logging.info("Отправляю дневное напоминание...")
                 for user_id, data in user_pills.items():
                     if not data["second"]:
-                        logging.info(f"Отправка дневного уведомления пользователю {user_id}")
                         await bot.send_message(user_id, "Выпила вторую таблетку?", reply_markup=ReplyKeyboardMarkup(
                             keyboard=[[KeyboardButton(text="уже выпила, не отметила")], [KeyboardButton(text="нет, сейчас выпью")]],
                             resize_keyboard=True
                         ))
-                next_12pm += timedelta(days=1)  # Переносим следующее уведомление на завтра
+                next_12pm += timedelta(days=1)
 
             await asyncio.sleep(60)  # Проверяем каждую минуту
 
