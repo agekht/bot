@@ -57,8 +57,9 @@ async def send_reminders():
     while True:
         now = datetime.now(timezone.utc)
 
-        next_7am = now.replace(hour=6, minute=6, second=0, microsecond=0)  # Укажи нужное тестовое время
-        next_12pm = now.replace(hour=6, minute=8, second=0, microsecond=0)  # Укажи нужное тестовое время
+        # Задаем целевые времена (изменяй для тестов)
+        next_7am = now.replace(hour=5, minute=0, second=0, microsecond=0)  # 7:00 GMT+0
+        next_12pm = now.replace(hour=5, minute=1, second=0, microsecond=0)  # 12:00 GMT+0
 
         if now >= next_7am:
             next_7am += timedelta(days=1)
@@ -69,7 +70,7 @@ async def send_reminders():
             now = datetime.now(timezone.utc)
 
             if now >= next_7am:
-                logging.info("Отправляю утреннее напоминание...")
+                logging.info(f"Отправляю утреннее напоминание в {now} UTC")
                 for user_id, data in user_pills.items():
                     if not data["first"]:
                         await bot.send_message(user_id, "Выпила первую таблетку?", reply_markup=ReplyKeyboardMarkup(
@@ -79,7 +80,7 @@ async def send_reminders():
                 next_7am += timedelta(days=1)
 
             if now >= next_12pm:
-                logging.info("Отправляю дневное напоминание...")
+                logging.info(f"Отправляю дневное напоминание в {now} UTC")
                 for user_id, data in user_pills.items():
                     if not data["second"]:
                         await bot.send_message(user_id, "Выпила вторую таблетку?", reply_markup=ReplyKeyboardMarkup(
