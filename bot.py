@@ -3,10 +3,9 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
-from aiogram.utils.markdown import hbold
 from datetime import datetime, timezone, timedelta
 
-API_TOKEN = "7674009820:AAFUnpILU1xzJKtHn5-7wS3jWoG1Zcl6YDk"
+API_TOKEN = "YOUR_BOT_TOKEN"
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
@@ -46,13 +45,19 @@ async def handle_buttons(message: types.Message):
     elif "вторую таблетку" in text or "вместе с остальными" in text:
         user_data["second"] = True
 
-    await message.answer(f"Отмечено: первая - {'✅' if user_data['first'] else '❌'}, вторая - {'✅' if user_data['second'] else '❌'}")
+    date_today = datetime.now(timezone.utc).strftime("%d.%m.%Y")
+    status_message = (f"*{date_today}*\n"
+                      f"Первая таблетка за сегодня: {'✅' if user_data['first'] else '❌'}\n"
+                      f"Вторая таблетка за сегодня (и остальные вместе с ней!): {'✅' if user_data['second'] else '❌'}\n"
+                      "Не забудь отметиться, когда выпьешь следующую таблетку! ❤️")
+    
+    await message.answer(status_message, parse_mode="Markdown")
 
 async def send_reminders():
     while True:
         now = datetime.now(timezone.utc)
         next_7am = now.replace(hour=7, minute=0, second=0, microsecond=0)
-        next_12pm = now.replace(hour=11, minute=30, second=0, microsecond=0)
+        next_12pm = now.replace(hour=12, minute=0, second=0, microsecond=0)
 
         if now >= next_7am:
             next_7am += timedelta(days=1)
