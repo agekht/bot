@@ -5,7 +5,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 from datetime import datetime, timezone, timedelta
 
-API_TOKEN = "YOUR_BOT_TOKEN"
+API_TOKEN = 7674009820:AAFUnpILU1xzJKtHn5-7wS3jWoG1Zcl6YDk
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
