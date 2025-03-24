@@ -3,9 +3,9 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
-API_TOKEN = '7674009820:AAFUnpILU1xzJKtHn5-7wS3jWoG1Zcl6YDk'
+API_TOKEN = "YOUR_BOT_TOKEN"
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
@@ -16,6 +16,7 @@ keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="первую таблетку")],
         [KeyboardButton(text="вторую таблетку (вместе с остальными)")],
+        [KeyboardButton(text="сбросить все")],
         [KeyboardButton(text="пока не пила (назад в меню)")]
     ],
     resize_keyboard=True
@@ -44,7 +45,10 @@ async def handle_buttons(message: types.Message):
         user_data["first"] = True
     elif "вторую таблетку" in text or "вместе с остальными" in text:
         user_data["second"] = True
-
+    elif "сбросить все" in text:
+        user_data["first"] = False
+        user_data["second"] = False
+    
     date_today = datetime.now(timezone.utc).strftime("%d.%m.%Y")
     status_message = (f"*{date_today}*\n"
                       f"Первая таблетка за сегодня: {'✅' if user_data['first'] else '❌'}\n"
@@ -53,47 +57,7 @@ async def handle_buttons(message: types.Message):
     
     await message.answer(status_message, parse_mode="Markdown")
 
-async def send_reminders():
-    while True:
-        now = datetime.now(timezone.utc)
-
-        # Задаем целевые времена (изменяй для тестов)
-        next_7am = now.replace(hour=5, minute=0, second=0, microsecond=0)  # 7:00 GMT+0
-        next_12pm = now.replace(hour=5, minute=1, second=0, microsecond=0)  # 12:00 GMT+0
-
-        if now >= next_7am:
-            next_7am += timedelta(days=1)
-        if now >= next_12pm:
-            next_12pm += timedelta(days=1)
-
-        while True:
-            now = datetime.now(timezone.utc)
-
-            if now >= next_7am:
-                logging.info(f"Отправляю утреннее напоминание в {now} UTC")
-                for user_id, data in user_pills.items():
-                    if not data["first"]:
-                        await bot.send_message(user_id, "Выпила первую таблетку?", reply_markup=ReplyKeyboardMarkup(
-                            keyboard=[[KeyboardButton(text="уже выпила, не отметила")], [KeyboardButton(text="нет, сейчас выпью")]],
-                            resize_keyboard=True
-                        ))
-                next_7am += timedelta(days=1)
-
-            if now >= next_12pm:
-                logging.info(f"Отправляю дневное напоминание в {now} UTC")
-                for user_id, data in user_pills.items():
-                    if not data["second"]:
-                        await bot.send_message(user_id, "Выпила вторую таблетку?", reply_markup=ReplyKeyboardMarkup(
-                            keyboard=[[KeyboardButton(text="уже выпила, не отметила")], [KeyboardButton(text="нет, сейчас выпью")]],
-                            resize_keyboard=True
-                        ))
-                next_12pm += timedelta(days=1)
-
-            await asyncio.sleep(60)  # Проверяем каждую минуту
-
-
 async def main():
-    asyncio.create_task(send_reminders())
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
